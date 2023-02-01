@@ -1,0 +1,762 @@
+import pandas as pd
+
+import plotly.express as px
+
+ 
+
+from dash import Dash, dcc, html, ctx
+
+import dash_bootstrap_components as dbc
+
+from dash.dependencies import Input, Output, State
+
+ 
+
+# Initialize the application
+
+app = Dash(__name__, external_stylesheets=[dbc.themes.SUPERHERO])
+
+ 
+
+# ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+# Create random data
+
+retro_dashboard_1M = pd.DataFrame(np.random.randint(0,100,size=(10, 2)), columns=list('AB'))
+
+shifted_dashboard_1M = pd.DataFrame(np.random.randint(0,100,size=(10, 2)), columns=list('CD'))
+
+retro_dashboard_3M = pd.DataFrame(np.random.randint(0,100,size=(10, 2)), columns=list('EF'))
+
+shifted_dashboard_3M = pd.DataFrame(np.random.randint(0,100,size=(10, 2)), columns=list('GH'))
+
+# ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+# App layout
+
+
+app.layout = dbc.Container([
+
+    dbc.Row([
+
+        dbc.Col([
+
+            html.P()
+
+        ])
+
+    ]),
+
+
+
+    # Create the title
+
+    dbc.Row([
+
+        dbc.Col([
+
+            html.H1("DLL Hedge Accounting Dashboard", style={'textAlign': 'center'})
+
+        ], width = 12)
+
+    ]),
+
+ 
+
+    dbc.Row([
+
+        dbc.Col([
+
+            html.P()
+
+        ])
+
+    ]),
+
+ 
+
+    dbc.Row([
+
+        dbc.Col([
+
+            dbc.NavbarSimple([
+
+                dbc.DropdownMenu([
+
+                    dbc.DropdownMenuItem("See last Results"),
+
+                    dbc.DropdownMenuItem("New Month"),
+
+                ],nav=True,in_navbar=True,label="Navigate"),
+
+ 
+
+                dbc.DropdownMenu([
+
+                    dbc.DropdownMenuItem("Group EUR", header=True),
+
+                    dbc.DropdownMenuItem("Group USD"),
+
+                    dbc.DropdownMenuItem("Treasury EUR"),
+
+                    dbc.DropdownMenuItem("Treasury USD")
+
+                ],nav=True,in_navbar=True,label="Select Model"),
+
+ 
+
+                dbc.DropdownMenu([
+
+                    dbc.DropdownMenuItem("January"),
+
+                    dbc.DropdownMenuItem("February"),
+
+                    dbc.DropdownMenuItem("March"),
+
+                    dbc.DropdownMenuItem("April"),
+
+                    dbc.DropdownMenuItem("May"),
+
+                    dbc.DropdownMenuItem("June"),
+
+                    dbc.DropdownMenuItem("July"),
+
+                    dbc.DropdownMenuItem("August"),
+
+                    dbc.DropdownMenuItem("September"),
+
+                    dbc.DropdownMenuItem("November"),
+
+                    dbc.DropdownMenuItem("December"),
+
+                ],nav=True,in_navbar=True,label="Select Month"),
+
+ 
+
+                dbc.DropdownMenu([
+
+                    dbc.DropdownMenuItem("View Test Results", header=True),
+
+                    dbc.DropdownMenuItem("View Run Log"),
+
+                    dbc.DropdownMenuItem("View Swap Details",href="#"),
+
+                    dbc.DropdownMenuItem("View Bucket Details",href="#")
+
+                ],nav=True,in_navbar=True,label="View Window"),
+
+            ],brand="DLL", brand_href="#",color="primary",dark=True)
+
+        ]),
+
+    ]),
+
+ 
+
+    dbc.Row([
+
+        dbc.Col([
+
+            html.P()
+
+        ])
+
+    ]),
+
+ 
+
+    dbc.Row([
+
+        dbc.Col([
+
+            # Create the left side navigation bar
+
+            html.Div([
+
+                html.P(),
+
+                dbc.Nav([
+
+                    # Create the bottons that are linked to each other
+
+                    html.Div([
+
+                       
+
+                        # Button 1: Check Prospective Files
+
+                        dbc.Button("Check files", id="check_prospective_files",n_clicks=0),
+
+                        html.Div([
+
+                            dcc.Interval(id="progress-interval", n_intervals=0, interval=80, disabled=True),
+
+                            dbc.Progress(id="progress",color="primary"),
+
+                        ]),
+
+ 
+
+                        # Button 2: Perform Prospective Test
+
+                        dbc.Button("Perform Prospective Test", id="perform_prospective_test",disabled=True),
+
+ 
+
+                        # Button Save Prospective Test Results
+
+                        html.Div([dbc.Button("Save", id="save_prospective_test", disabled=True, color="secondary",size="sm")], className="d-grid gap-2 col-6 mx-auto"),
+
+                        dbc.Modal([
+
+                            dbc.ModalHeader(dbc.ModalTitle("Warning")),
+
+                            dbc.ModalBody("Are you sure you want to save the Prospective Test results?"),
+
+                            dbc.ModalFooter([
+
+                                dbc.Button("Yes", id="yes_save_prospective_test",n_clicks=0),
+
+                                dbc.Button("No", id="no_save_prospective_test",n_clicks=0),
+
+                                dbc.Button("Close", id="close_1",className="ms-auto",n_clicks=0)
+
+                            ])
+
+                        ],id="modal_1",centered=True,is_open=False),
+
+                        html.P(),
+
+ 
+
+                        # Button 3: Check Retrospective Files
+
+                        dbc.Button("Check files", id="check_retrospective_files", disabled=True, n_clicks=0),
+
+                        html.Div([
+
+                            dcc.Interval(id="progress-interval_2", n_intervals=0, interval=80, disabled=True),
+
+                            dbc.Progress(id="progress_2",color="primary"),
+
+                        ]),
+
+ 
+
+                        # Button 4: Perform Retrospective Test
+
+                        dbc.Button("Perform Retrospective Test", id="perform_retrospective_test", disabled=True),
+
+ 
+
+                        # Button Save Retrospective Test Results
+
+                        html.Div([dbc.Button("Save", id="save_retrospective_test", disabled=True, color="secondary", size="sm")], className="d-grid gap-2 col-6 mx-auto"),
+
+                        dbc.Modal([
+
+                            dbc.ModalHeader(dbc.ModalTitle("Warning")),
+
+                            dbc.ModalBody("Are you sure you want to save the Retrospective Test results?"),
+
+                            dbc.ModalFooter([
+
+                                dbc.Button("Yes", id="yes_save_retrospective_test"),
+
+                                dbc.Button("No", id="no_save_retrospective_test"),
+
+                                dbc.Button("Close", id="close_2",className="ms-auto",n_clicks=0),
+
+                            ]),
+
+                        ],id="modal_2",centered=True,is_open=False),
+
+                        html.P(),
+
+ 
+
+                        # Button 5: Run Output Pickler
+
+                        dbc.Button("Run Output Pickler",id="run_output_pickler", disabled=True),
+
+ 
+
+                        # Button 6: Run Compare
+
+                        dbc.Button("Run Compare",id="run_compare",disabled=True),
+
+                        html.P(),
+
+ 
+
+                        # Re-delivery button
+
+                        dbc.Button("Re-delivery", id="re_delivery", disabled=False, color="danger"),
+
+                    ],
+
+                    className="d-grid gap-2"),
+
+                ], vertical=True,pills=True)
+
+            ])
+
+        ]),
+
+ 
+
+        dbc.Col([
+
+            html.Header("Prospective Test Results 1M Model:", style={'textAlign': 'center'}),
+
+            html.Hr(),
+
+            html.Div(id="prospective_test_table_1M")
+
+        ]),
+
+ 
+
+        dbc.Col([
+
+            html.Header("Prospective Test Results 3M Model:", style={'textAlign': 'center'}),
+
+            html.Hr(),
+
+            html.Div(id="prospective_test_table_3M")
+
+        ])
+
+    ]),
+
+ 
+
+    dbc.Row([
+
+        dbc.Col([]),
+
+ 
+
+        dbc.Col([
+
+            html.Header("Retrospective Test Results 1M Model", style={'textAlign': 'center'}),
+
+            html.Hr(),
+
+            html.Div(id="retrospective_test_table_1M")
+
+        ]),
+
+       
+
+        dbc.Col([
+
+            html.Header("Retrospective Test Results 3M Model", style={'textAlign': 'center'}),
+
+            html.Hr(),
+
+            html.Div(id="retrospective_test_table_3M")
+
+        ])
+
+    ]),
+
+])
+
+ 
+
+# ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+# Connect content with Dash Components
+
+ 
+
+# Side navigation bar
+
+## Check Prospective Files and run progress bar
+
+@app.callback(
+
+    Output("perform_prospective_test","disabled"),
+
+    Output("progress", "value"),
+
+    Output("progress", "label"),
+
+    Output("progress", "color"),
+
+    Output("progress-interval", "disabled"),
+
+    Output("progress-interval", "n_intervals"),
+
+    Input("check_prospective_files","n_clicks"),
+
+    Input("progress-interval", "n_intervals"),
+
+    Input("re_delivery","n_clicks")
+
+)
+
+ 
+
+def button_check_prospective_files(button, percentage, re_delivery):
+
+    button_clicked = ctx.triggered_id
+
+    if button_clicked == "check_prospective_files":                                                          
+
+        progress = 0
+
+        progress = min(percentage % 110, 100)
+
+        return True, progress, f"{progress} %" if progress >= 5 else "", "primary", False, percentage
+
+    elif button_clicked == "progress-interval":        
+
+        progress = min(percentage % 110, 100)
+
+        if progress == 100:                                                                      
+
+            return False, progress, "Completed", "success", True, percentage
+
+        else:
+
+            return True, progress, f"{progress} %" if progress >= 5 else "", "primary", False, percentage
+
+    elif button_clicked == "re_delivery":
+
+        progress = 0      
+
+        percentage = 0                                                                        
+
+        return True, progress, f"{progress} %" if progress >= 5 else "", "primary", True, percentage
+
+    else:
+
+        progress = 0
+
+        return True, progress, f"{progress} %" if progress >= 5 else "", "primary", True, percentage
+
+ 
+
+## Perform Prospective Test and enable Save button
+
+@app.callback(
+
+    Output("prospective_test_table_1M","children"),
+
+    Output("prospective_test_table_3M","children"),
+
+    Output("save_prospective_test","disabled"),
+
+    Input("perform_prospective_test","n_clicks"),
+
+    Input("re_delivery","n_clicks")
+
+)
+
+ 
+
+def button_perform_prospective_test(n, re_delivery):                                    
+
+    button_clicked = ctx.triggered_id
+
+    if button_clicked == "perform_prospective_test":  
+
+        table_1M = dbc.Table.from_dataframe(shifted_dashboard_1M, striped=True, bordered=True, hover=True, color='secondary'), # CHANGES MADE HERE
+
+        table_3M = dbc.Table.from_dataframe(shifted_dashboard_3M, striped=True, bordered=True, hover=True)
+
+        return table_1M, table_3M, False
+
+    elif button_clicked == "re_delivery":
+
+        return "", "", True
+
+    else:
+
+        return "", "", True
+
+ 
+
+## Save button and modal
+
+@app.callback(
+
+    Output("modal_1", "is_open"),
+
+    Input("save_prospective_test","n_clicks"),
+
+    Input("close_1","n_clicks"),
+
+    Input("yes_save_prospective_test","n_clicks"),
+
+    Input("no_save_prospective_test","n_clicks"),
+
+    [State("modal_1","is_open")]
+
+)
+
+ 
+
+def toggle_modal(n1, n2, yes, no, is_open):
+
+    if n1 or n2 or yes or no:
+
+        return not is_open
+
+    else:
+
+        return is_open
+
+ 
+
+# Enable Check Retrospective Files button
+
+@app.callback(
+
+    Output("check_retrospective_files","disabled"),
+
+    Input("yes_save_prospective_test","n_clicks"),
+
+    Input("no_save_prospective_test","n_clicks"),
+
+    Input("re_delivery", "n_clicks")
+
+)
+
+ 
+
+def yes_save(yes,no, re_delivery):
+
+    button_clicked = ctx.triggered_id
+
+    if button_clicked == "yes_save_prospective_test":
+
+        return False
+
+    elif button_clicked == "no_save_prospective_test" or button_clicked == "re_delivery":
+
+        return True                                                
+
+    else:
+
+        return True
+
+ 
+
+## Check Retrospective Files
+
+@app.callback(
+
+    Output("perform_retrospective_test","disabled"),
+
+    Output("progress_2", "value"),
+
+    Output("progress_2", "label"),
+
+    Output("progress_2", "color"),
+
+    Output("progress-interval_2", "disabled"),
+
+    Output("progress-interval_2","n_intervals"),
+
+    Input("check_retrospective_files","n_clicks"),
+
+    Input("progress-interval_2", "n_intervals"),
+
+    Input("re_delivery","n_clicks")
+
+)
+
+ 
+
+def button_check_retrospective_files(button, percentage, re_delivery):
+
+    button_clicked = ctx.triggered_id
+
+    if button_clicked == "check_retrospective_files":
+
+        progress = 0
+
+        progress = min(percentage % 110, 100)
+
+        return True, progress, f"{progress} %" if progress >= 5 else "", "primary", False, percentage
+
+    elif button_clicked == "progress-interval_2":
+
+        progress = min(percentage % 110, 100)
+
+        if progress == 100:                                                                      
+
+            return False, progress, "Completed", "success", True, percentage
+
+        else:
+
+            return True, progress, f"{progress} %" if progress >= 5 else "", "primary", False, percentage
+
+    elif button_clicked == "re_delivery":
+
+        progress = 0
+
+        percentage = 0                                                                          
+
+        return True, progress, f"{progress} %" if progress >= 5 else "", "primary", True, percentage
+
+    else:
+
+        progress = 0
+
+        return True, progress, f"{progress} %" if progress >= 5 else "", "primary", True, percentage
+
+ 
+
+## Perform Retrospective Test
+
+@app.callback(
+
+    Output("retrospective_test_table_1M","children"),
+
+    Output("retrospective_test_table_3M","children"),
+
+    Output("save_retrospective_test","disabled"),
+
+    Input("perform_retrospective_test","n_clicks"),
+
+    Input("re_delivery", "n_clicks")
+
+)
+
+ 
+
+def button_perform_retrospective_test(n, re_delivery):
+
+    button_clicked = ctx.triggered_id
+
+    if button_clicked == "perform_retrospective_test":
+
+        table_1M = dbc.Table.from_dataframe(retro_dashboard_1M, striped=True, bordered=True, hover=True),
+
+        table_3M = dbc.Table.from_dataframe(retro_dashboard_3M, striped=True, bordered=True, hover=True)
+
+        return table_1M, table_3M, False
+
+    elif button_clicked == "re_delivery":
+
+        return "", "", True
+
+    else:
+
+        return "", "", True
+
+ 
+
+## Save button and modal 2
+
+@app.callback(
+
+    Output("modal_2", "is_open"),
+
+    Input("save_retrospective_test","n_clicks"),
+
+    Input("close_2","n_clicks"),
+
+    Input("yes_save_retrospective_test","n_clicks"),
+
+    Input("no_save_retrospective_test","n_clicks"),
+
+    [State("modal_2","is_open")]
+
+)
+
+ 
+
+def toggle_modal(n1, n2, yes, no, is_open):
+
+    if n1 or n2 or yes or no:
+
+        return not is_open
+
+    else:
+
+        return is_open
+
+ 
+
+# Enable Run Output Pickler button
+
+@app.callback(
+
+    Output("run_output_pickler","disabled"),
+
+    Input("yes_save_retrospective_test","n_clicks"),
+
+    Input("no_save_retrospective_test","n_clicks"),
+
+    Input("re_delivery","n_clicks")
+
+)
+
+ 
+
+def yes_or_no_save(yes,no, re_delivery):
+
+    button_clicked = ctx.triggered_id
+
+    if button_clicked == "yes_save_retrospective_test":
+
+        return False
+
+    elif button_clicked == "no_save_retrospective_test":            
+
+        return True
+
+    elif button_clicked == "re_delivery":
+
+        return True                                                
+
+    else:
+
+        return True
+
+ 
+
+## Run Output Pickler Button
+
+@app.callback(
+
+    Output("run_compare", "disabled"),
+
+    Input("run_output_pickler","n_clicks"),
+
+    Input("re_delivery", "n_clicks")
+
+)
+
+ 
+
+def on_button_click(n, re_delivery):
+
+    button_clicked = ctx.triggered_id
+
+    if button_clicked == "run_output_pickler":
+
+        return False
+
+    elif button_clicked == "re_delivery":
+
+        return True
+
+    else:
+
+        return True
+
+ 
+
+# --------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+# Run the app
+
+if __name__ == '__main__':
+
+    app.run_server(debug=True)
